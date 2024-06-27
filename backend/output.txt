@@ -1,0 +1,470 @@
+Admin.js:
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/sequelize');
+const bcrypt = require('bcryptjs');
+
+const Admin = sequelize.define('Admin', {
+    first_name: { type: DataTypes.STRING, allowNull: false },
+    last_name: { type: DataTypes.STRING, allowNull: false },
+    national_id: { type: DataTypes.STRING(10), allowNull: false, unique: true },
+    phone_number: { type: DataTypes.STRING, allowNull: false, unique: true },
+    email: { type: DataTypes.STRING, allowNull: false, unique: true },
+    password: { type: DataTypes.STRING, allowNull: false },
+    role: { type: DataTypes.STRING, allowNull: false, defaultValue: 'admin' },
+}, {
+    timestamps: true,
+});
+
+// Hook to hash password before saving
+Admin.beforeCreate(async (admin, options) => {
+    const salt = await bcrypt.genSalt(10);
+    admin.password = await bcrypt.hash(admin.password, salt);
+});
+
+module.exports = Admin;
+
+
+Charity.js:
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/sequelize');
+const Location = require('./Location');
+
+const Charity = sequelize.define('Charity', {
+    name: { type: DataTypes.STRING, allowNull: false },
+    phone_number: { type: DataTypes.STRING, allowNull: false, unique: true },
+    address: { type: DataTypes.TEXT, allowNull: false },
+    location_id: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: Location,
+            key: 'id'
+        },
+        allowNull: false
+    }
+}, {
+    timestamps: true,
+});
+
+module.exports = Charity;
+
+
+CharityEmployee.js:
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/sequelize');
+const Charity = require('./Charity');
+const bcrypt = require('bcryptjs');
+
+const CharityEmployee = sequelize.define('CharityEmployee', {
+    charity_id: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: Charity,
+            key: 'id'
+        },
+        allowNull: false
+    },
+    first_name: { type: DataTypes.STRING, allowNull: false },
+    last_name: { type: DataTypes.STRING, allowNull: false },
+    national_id: { type: DataTypes.STRING, allowNull: false, unique: true },
+    phone_number: { type: DataTypes.STRING, allowNull: false, unique: true },
+    email: { type: DataTypes.STRING, allowNull: false, unique: true },
+    password: { type: DataTypes.STRING, allowNull: false }
+}, {
+    timestamps: true,
+});
+
+// Hook to hash password before saving
+CharityEmployee.beforeCreate(async (charity_employee, options) => {
+    const salt = await bcrypt.genSalt(10);
+    charity_employee.password = await bcrypt.hash(charity_employee.password, salt);
+});
+
+module.exports = CharityEmployee;
+
+
+Doctor.js:
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/sequelize');
+const bcrypt = require('bcryptjs');
+const Location = require('./Location');
+
+const Doctor = sequelize.define('Doctor', {
+    first_name: { type: DataTypes.STRING, allowNull: false },
+    last_name: { type: DataTypes.STRING, allowNull: false },
+    doctor_code: { type: DataTypes.STRING, allowNull: false, unique: true },
+    major: { type: DataTypes.STRING, allowNull: false },
+    specialty: { type: DataTypes.STRING, allowNull: false },
+    phone_number: { type: DataTypes.STRING, allowNull: false, unique: true },
+    email: { type: DataTypes.STRING, allowNull: false, unique: true },
+    password: { type: DataTypes.STRING, allowNull: false },
+    address: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
+    location_id: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: Location,
+            key: 'id'
+        },
+        allowNull: false
+    }
+}, {
+    timestamps: true,
+});
+
+// Hook to hash password before saving
+Doctor.beforeCreate(async (doctor, options) => {
+    const salt = await bcrypt.genSalt(10);
+    doctor.password = await bcrypt.hash(doctor.password, salt);
+});
+
+module.exports = Doctor;
+
+
+DoctorFreeTime.js:
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/sequelize');
+const Doctor = require('./Doctor');
+
+const DoctorFreeTime = sequelize.define('DoctorFreeTime', {
+    doctor_id: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: Doctor,
+            key: 'id'
+        },
+        allowNull: false
+    },
+    date: { type: DataTypes.DATEONLY, allowNull: false },
+    start_time: { type: DataTypes.TIME, allowNull: false },
+    finish_time: { type: DataTypes.TIME, allowNull: false }
+}, {
+    timestamps: true,
+});
+
+// Custom method to partition free time into 30-minute intervals
+DoctorFreeTime.addFreeTime = async function (doctor_id, date, start_time, end_time) {
+    const intervals = [];
+    let startTime = new Date(`${date}T${start_time}`);
+    const endTime = new Date(`${date}T${end_time}`);
+    while (startTime < endTime) {
+        const finishTime = new Date(startTime.getTime() + 30 * 60000); // 30 minutes later
+        intervals.push({
+            doctor_id,
+            date,
+            start_time: startTime.toTimeString().slice(0, 8),
+            finish_time: finishTime.toTimeString().slice(0, 8)
+        });
+        startTime = finishTime;
+    }
+    await DoctorFreeTime.bulkCreate(intervals);
+};
+
+module.exports = DoctorFreeTime;
+
+
+DoctorVisit.js:
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/sequelize');
+const DoctorFreeTime = require('./DoctorFreeTime');
+const Patient = require('./Patient');
+const Service = require('./Service');
+
+const DoctorVisit = sequelize.define('DoctorVisit', {
+    fact_doctor_free_time_id: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: DoctorFreeTime,
+            key: 'id'
+        },
+        allowNull: false
+    },
+    patient_id: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: Patient,
+            key: 'id'
+        },
+        allowNull: false
+    },
+    service_id: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: Service,
+            key: 'id'
+        },
+        allowNull: false
+    },
+    tooth_number: { type: DataTypes.INTEGER, allowNull: false },
+    raw_cost: { type: DataTypes.FLOAT, allowNull: false },
+    is_reminded: { type: DataTypes.BOOLEAN, allowNull: false }
+}, {
+    timestamps: true,
+});
+
+module.exports = DoctorVisit;
+
+
+Drug.js:
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/sequelize');
+
+const Drug = sequelize.define('Drug', {
+    name: { type: DataTypes.STRING, allowNull: false },
+    shape: { type: DataTypes.STRING, allowNull: false },
+    dosage: { type: DataTypes.STRING, allowNull: false },
+    usage: { type: DataTypes.TEXT, allowNull: false },
+    category: { type: DataTypes.STRING, allowNull: false },
+    ingredients: { type: DataTypes.TEXT, allowNull: false },
+    clinical_verified: { type: DataTypes.BOOLEAN, allowNull: false },
+    access_level: { type: DataTypes.INTEGER, allowNull: false },
+    description: { type: DataTypes.TEXT, allowNull: false },
+    expiration_date: { type: DataTypes.DATE, allowNull: false }
+}, {
+    timestamps: true,
+});
+
+module.exports = Drug;
+
+
+Location.js:
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/sequelize');
+
+const Location = sequelize.define('Location', {
+    sum_of_population: { type: DataTypes.INTEGER, allowNull: false },
+    lat: { type: DataTypes.FLOAT, allowNull: false },
+    lng: { type: DataTypes.FLOAT, allowNull: false },
+    city: { type: DataTypes.STRING, allowNull: false },
+    province: { type: DataTypes.STRING, allowNull: false },
+}, {
+    timestamps: true,
+    indexes: [
+        {
+            unique: true,
+            fields: ['province', 'city']
+        }
+    ]
+});
+
+module.exports = Location;
+
+
+Patient.js:
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/sequelize');
+
+const Patient = sequelize.define('Patient', {
+    charity_id: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: Charity,
+            key: 'id'
+        },
+        allowNull: false
+    },
+    first_name: { type: DataTypes.STRING, allowNull: false },
+    last_name: { type: DataTypes.STRING, allowNull: false },
+    national_id: { type: DataTypes.STRING, allowNull: false, unique: true },
+    birthdate: { type: DataTypes.DATEONLY, allowNull: false },
+    sex: { type: DataTypes.ENUM('male', 'female'), allowNull: false },
+    age: {
+        type: DataTypes.VIRTUAL,
+        get() {
+            return Math.floor((new Date() - new Date(this.birthdate)) / (365.25 * 24 * 60 * 60 * 1000));
+        }
+    }
+}, {
+    timestamps: true,
+});
+
+module.exports = Patient;
+
+
+RadiologyCenter.js:
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/sequelize');
+const Location = require('./Location');
+
+const RadiologyCenter = sequelize.define('RadiologyCenter', {
+    name: { type: DataTypes.STRING, allowNull: false },
+    code: { type: DataTypes.STRING, allowNull: false, unique: true },
+    phone_number: { type: DataTypes.STRING, allowNull: false, unique: true },
+    address: { type: DataTypes.TEXT, allowNull: false },
+    location_id: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: Location,
+            key: 'id'
+        },
+        allowNull: false
+    }
+}, {
+    timestamps: true,
+});
+
+module.exports = RadiologyCenter;
+
+
+RadiologyCenterEmployee.js:
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/sequelize');
+const RadiologyCenter = require('./RadiologyCenter');
+const bcrypt = require('bcryptjs');
+
+const RadiologyCenterEmployee = sequelize.define('RadiologyCenterEmployee', {
+    radiology_center_id: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: RadiologyCenter,
+            key: 'id'
+        },
+        allowNull: false
+    },
+    first_name: { type: DataTypes.STRING, allowNull: false },
+    last_name: { type: DataTypes.STRING, allowNull: false },
+    national_id: { type: DataTypes.STRING, allowNull: false, unique: true },
+    phone_number: { type: DataTypes.STRING, allowNull: false },
+    password: { type: DataTypes.STRING, allowNull: false }
+}, {
+    timestamps: true,
+});
+
+// Hook to hash password before saving
+RadiologyCenterEmployee.beforeCreate(async (radiology_center_employee, options) => {
+    const salt = await bcrypt.genSalt(10);
+    radiology_center_employee.password = await bcrypt.hash(radiology_center_employee.password, salt);
+});
+
+module.exports = RadiologyCenterEmployee;
+
+
+RadiologyCenterFreeTime.js:
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/sequelize');
+const RadiologyCenter = require('./RadiologyCenter');
+
+const RadiologyCenterFreeTime = sequelize.define('RadiologyCenterFreeTime', {
+    radiology_center_id: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: RadiologyCenter,
+            key: 'id'
+        },
+        allowNull: false
+    },
+    date: { type: DataTypes.DATEONLY, allowNull: false },
+    start_time: { type: DataTypes.TIME, allowNull: false },
+    finish_time: { type: DataTypes.TIME, allowNull: false }
+}, {
+    timestamps: true,
+});
+
+// Custom method to partition free time into 30-minute intervals
+RadiologyCenterFreeTime.addFreeTime = async function (radiology_center_id, date, start_time, end_time) {
+    const intervals = [];
+    let startTime = new Date(`${date}T${start_time}`);
+    const endTime = new Date(`${date}T${end_time}`);
+    while (startTime < endTime) {
+        const finishTime = new Date(startTime.getTime() + 30 * 60000); // 30 minutes later
+        intervals.push({
+            radiology_center_id,
+            date,
+            start_time: startTime.toTimeString().slice(0, 8),
+            finish_time: finishTime.toTimeString().slice(0, 8)
+        });
+        startTime = finishTime;
+    }
+    await RadiologyCenterFreeTime.bulkCreate(intervals);
+};
+
+module.exports = RadiologyCenterFreeTime;
+
+
+RadiologyCenterVisit.js:
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/sequelize');
+const RadiologyCenterFreeTime = require('./RadiologyCenterFreeTime');
+const Patient = require('./Patient');
+const Service = require('./Service');
+const DoctorVisit = require('./DoctorVisit');
+
+const RadiologyCenterVisit = sequelize.define('RadiologyCenterVisit', {
+    fact_radiology_center_free_time_id: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: RadiologyCenterFreeTime,
+            key: 'id'
+        },
+        allowNull: false
+    },
+    doctor_visit_id: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: DoctorVisit,
+            key: 'id'
+        },
+        allowNull: false
+    },
+    opg_image: { type: DataTypes.STRING, defaultValue: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRGzWZDpX9gNdFKInBmkFHoVLumxNn7_4jIyA&s', allowNull: true },
+    raw_cost: { type: DataTypes.FLOAT, allowNull: false },
+    is_reminded: { type: DataTypes.BOOLEAN, defaultValue: false },
+}, {
+    timestamps: true,
+});
+
+module.exports = RadiologyCenterVisit;
+
+
+Service.js:
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/sequelize');
+
+const Service = sequelize.define('Service', {
+    total_cost: { type: DataTypes.FLOAT, allowNull: false },
+    used_materials: { type: DataTypes.FLOAT, allowNull: false },
+    technical_part: { type: DataTypes.FLOAT, allowNull: false },
+    professional_part: { type: DataTypes.FLOAT, allowNull: false },
+    service_type: { type: DataTypes.STRING, allowNull: false },
+    service_description: { type: DataTypes.TEXT, allowNull: false },
+    code: { type: DataTypes.STRING, allowNull: false, unique: true }
+}, {
+    timestamps: true,
+});
+
+module.exports = Service;
+
+
+SystemSecretary.js:
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/sequelize');
+const bcrypt = require('bcryptjs');
+const Location = require('./Location');
+
+const SystemSecretary = sequelize.define('SystemSecretary', {
+    first_name: { type: DataTypes.STRING, allowNull: false },
+    last_name: { type: DataTypes.STRING, allowNull: false },
+    national_id: { type: DataTypes.STRING(10), allowNull: false, unique: true },
+    phone_number: { type: DataTypes.STRING, allowNull: false, unique: true },
+    email: { type: DataTypes.STRING, allowNull: false, unique: true },
+    password: { type: DataTypes.STRING, allowNull: false },
+    role: { type: DataTypes.STRING, allowNull: false, defaultValue: 'system_secretary' },
+    location_id: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: Location,
+            key: 'id'
+        },
+        allowNull: false
+    }
+}, {
+    timestamps: true,
+});
+
+// Hook to hash password before saving
+SystemSecretary.beforeCreate(async (systemSecretary, options) => {
+    const salt = await bcrypt.genSalt(10);
+    systemSecretary.password = await bcrypt.hash(systemSecretary.password, salt);
+});
+
+module.exports = SystemSecretary;
+
+
