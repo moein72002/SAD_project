@@ -1,16 +1,41 @@
+import math
 import random
 import uuid
+import numpy as np
+from persiantools.jdatetime import JalaliDate
 
 from faker import Faker
 from datetime import datetime, timedelta
 import csv
 import pandas as pd
+import jdatetime
 
 fake = Faker()
+
+
 
 # Helper functions
 def hash_password(password):
     return password
+
+
+def solar_to_gregorian(solar_date):
+    print(type(solar_date))
+    year, month, day = map(int, solar_date.split('/'))
+
+    # Create a JalaliDate object
+    jalali_date = JalaliDate(year, month, day)
+
+    # Convert to Gregorian date
+    return jalali_date.to_gregorian()
+def random_solar_date(start_year, end_year):
+# Generate a random year, month, and day within the specified range
+    year = random.randint(start_year, end_year)
+    month = random.randint(1, 12)
+    day = random.randint(1, 29 if month <= 6 else 30)
+    random_date = jdatetime.date(year, month, day)
+    return random_date.strftime('%Y/%m/%d')
+
 
 def random_date(start, end):
     return start + timedelta(
@@ -42,6 +67,12 @@ services = load_csv(f'{current_address}/Services.csv')  # This should be a funct
 
 drugs = pd.read_csv(f'{current_address}/Drugs.csv')
 drugs['drug_id'] = [str(uuid.uuid4()) for _ in range(len(drugs))]
+# drugs = drugs.drop('Date', axis=1)
+# print(drugs['Date'])
+# drugs['Date'].fillna(random_solar_date(1399, 1403), inplace=True)
+# drugs['Date'] = drugs['Date'].apply(solar_to_gregorian)
+drugs['new_date'] = [fake.date_between(start_date='-4y', end_date='+5y') for _ in range(len(drugs))]
+
 drugs.to_csv('Drugs.csv', index=False)
 
 # Generate Charity data
