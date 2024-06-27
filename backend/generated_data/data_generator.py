@@ -3,13 +3,11 @@ import random
 import uuid
 import numpy as np
 from datetime import date, timedelta
-from persiantools.jdatetime import JalaliDate
 
 from faker import Faker
 from datetime import datetime, timedelta
 import csv
 import pandas as pd
-import jdatetime
 
 fake = Faker()
 
@@ -18,24 +16,6 @@ fake = Faker()
 # Helper functions
 def hash_password(password):
     return password
-
-
-def solar_to_gregorian(solar_date):
-    print(type(solar_date))
-    year, month, day = map(int, solar_date.split('/'))
-
-    # Create a JalaliDate object
-    jalali_date = JalaliDate(year, month, day)
-
-    # Convert to Gregorian date
-    return jalali_date.to_gregorian()
-def random_solar_date(start_year, end_year):
-# Generate a random year, month, and day within the specified range
-    year = random.randint(start_year, end_year)
-    month = random.randint(1, 12)
-    day = random.randint(1, 29 if month <= 6 else 30)
-    random_date = jdatetime.date(year, month, day)
-    return random_date.strftime('%Y/%m/%d')
 
 
 def random_date(start, end):
@@ -60,7 +40,8 @@ for counter in range(5):
         'role': 'admin'
     })
 
-current_address = './'
+# './'
+current_address = './backend/generated_data/generated_csv_files'
 # Assuming Location data is loaded from Location.csv
 locations = load_csv(f'{current_address}/Locations.csv')  # This should be a function that reads the CSV file
 # services = load_csv(f'{current_address}/Services.csv')# This should be a function that reads the CSV file
@@ -70,20 +51,22 @@ column_to_remove = 'ﻣﺑﻠﻎ ﻧﮭﺎﯾﯽ'
 part_to_remove = 'Rial '
 services.dropna(subset=[column_name], inplace=True)
 services[column_to_remove] = services[column_to_remove].str.replace(part_to_remove, '')
-services.to_csv('Services.csv', index=False)
+services.to_csv(f'{current_address}/Services.csv', index=False)
 
 
 # drugs = load_csv(f'{current_address}/Drugs.csv')  # This should be a function that reads the CSV file
 
 drugs = pd.read_csv(f'{current_address}/Drugs.csv')
 drugs['drug_id'] = [str(uuid.uuid4()) for _ in range(len(drugs))]
+
 # drugs = drugs.drop('Date', axis=1)
+
 # print(drugs['Date'])
 # drugs['Date'].fillna(random_solar_date(1399, 1403), inplace=True)
 # drugs['Date'] = drugs['Date'].apply(solar_to_gregorian)
-drugs['new_date'] = [fake.date_between(start_date='-4y', end_date='+5y') for _ in range(len(drugs))]
+drugs['expiration_date'] = [fake.date_between(start_date='+1y', end_date='+5y') for _ in range(len(drugs))]
 
-drugs.to_csv('Drugs.csv', index=False)
+drugs.to_csv(f'{current_address}/Drugs.csv', index=False)
 
 # Generate Charity data
 charities = []
@@ -306,7 +289,7 @@ for counter in range(100):
 
 # Functions to write data to CSV
 def write_csv(filename, fieldnames, rows):
-    with open(f"{current_address}/generated_csv_files/{filename}", mode='w', newline='') as file:
+    with open(f"{current_address}/{filename}", mode='w', newline='') as file:
         writer = csv.DictWriter(file, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(rows)
