@@ -2,6 +2,7 @@ import math
 import random
 import uuid
 import numpy as np
+from datetime import date, timedelta
 from persiantools.jdatetime import JalaliDate
 
 from faker import Faker
@@ -62,7 +63,16 @@ for counter in range(5):
 current_address = './'
 # Assuming Location data is loaded from Location.csv
 locations = load_csv(f'{current_address}/Locations.csv')  # This should be a function that reads the CSV file
-services = load_csv(f'{current_address}/Services.csv')  # This should be a function that reads the CSV file
+# services = load_csv(f'{current_address}/Services.csv')# This should be a function that reads the CSV file
+services = pd.read_csv(f'{current_address}/Services.csv')
+column_name = 'ردیف'
+column_to_remove = 'ﻣﺑﻠﻎ ﻧﮭﺎﯾﯽ'
+part_to_remove = 'Rial '
+services.dropna(subset=[column_name], inplace=True)
+services[column_to_remove] = services[column_to_remove].str.replace(part_to_remove, '')
+services.to_csv('Services.csv', index=False)
+
+
 # drugs = load_csv(f'{current_address}/Drugs.csv')  # This should be a function that reads the CSV file
 
 drugs = pd.read_csv(f'{current_address}/Drugs.csv')
@@ -90,7 +100,7 @@ for location in top_5_cities:
             'phone_number': fake.unique.phone_number(),
             'address': fake.address(),
             'location_id': location['Location_id'],
-            'created_at': fake.date_between(start_date='-4y', end_date='today')
+            'created_at': fake.date_between(start_date= date.today() - timedelta(days=6*30), end_date= date.today() - timedelta(days=2*30))
         }
         charities.append(charity)
         charity_ids.append(charity['id'])
@@ -128,7 +138,7 @@ for counter in range(500):
         'password': hash_password(fake.password()),
         'address': fake.address(),
         'location_id': random.choice(locations)['Location_id'],
-        'created_at': fake.date_between(start_date='-4y', end_date='today')
+        'created_at': fake.date_between(start_date= date.today() - timedelta(days=6*30), end_date= date.today() - timedelta(days=2*30))
 
     })
 
@@ -173,9 +183,9 @@ for charity_id in charity_ids:
             'first_name': fake.first_name(),
             'last_name': fake.last_name(),
             'national_id': fake.unique.numerify(text='##########'),
-            'birthdate': fake.date_of_birth(minimum_age=0, maximum_age=90),
+            'birthdate': fake.date_of_birth(minimum_age=7, maximum_age=16),
             'sex': random.choice(['male', 'female']),
-            'created_at': fake.date_between(start_date='-4y', end_date='today')
+            'created_at': fake.date_between(start_date= date.today() - timedelta(days=6*30), end_date= date.today() - timedelta(days=2*30))
 
         }
         patients.append(patient)
@@ -210,7 +220,8 @@ for location in top_5_cities:
             'code': fake.unique.bothify(text='RC-#####'),
             'phone_number': fake.unique.phone_number(),
             'address': fake.address(),
-            'location_id': location['Location_id']
+            'location_id': location['Location_id'],
+            'created_at': fake.date_between(start_date= date.today() - timedelta(days=6*30), end_date= date.today() - timedelta(days=2*30))
         }
         radiology_centers.append(center)
         radiology_center_ids.append(center['id'])
@@ -308,7 +319,7 @@ write_csv('Doctor.csv', ['id', 'first_name', 'last_name', 'doctor_code', 'major'
 write_csv('DoctorFreeTime.csv', ['id', 'doctor_id', 'date', 'start_time', 'finish_time'], doctor_free_times)
 write_csv('DoctorVisit.csv', ['id', 'fact_doctor_free_time_id', 'patient_id', 'service_id', 'tooth_number', 'raw_cost', 'is_reminded'], doctor_visits)
 write_csv('Patient.csv', ['id', 'charity_id', 'first_name', 'last_name', 'national_id', 'birthdate', 'sex','created_at'], patients)
-write_csv('RadiologyCenter.csv', ['id', 'name', 'code', 'phone_number', 'address', 'location_id'], radiology_centers)
+write_csv('RadiologyCenter.csv', ['id', 'name', 'code', 'phone_number', 'address', 'location_id','created_at'], radiology_centers)
 write_csv('RadiologyCenterEmployee.csv', ['id', 'radiology_center_id', 'first_name', 'last_name', 'national_id', 'phone_number', 'password'], radiology_center_employees)
 write_csv('RadiologyCenterFreeTime.csv', ['id', 'radiology_center_id', 'date', 'start_time', 'finish_time'], radiology_center_free_times)
 write_csv('RadiologyCenterVisit.csv', ['id', 'fact_radiology_center_free_time_id', 'doctor_visit_id', 'opg_image', 'raw_cost', 'is_reminded'], radiology_center_visits)
