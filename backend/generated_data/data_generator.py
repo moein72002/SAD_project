@@ -125,13 +125,14 @@ for charity_id in charity_ids:
 
 # Generate Doctor data
 doctors = []
+doctor_majors = ['Dentistry', 'Oral Surgery', 'Orthodontics', 'Endodontics', 'Periodontics']
 for counter in range(500):
     doctors.append({
         'id': counter + 1,
         'first_name': fake.first_name(),
         'last_name': fake.last_name(),
         'doctor_code': fake.unique.bothify(text='????-#####'),
-        'major': fake.job(),
+        'major': random.choice(doctor_majors),
         'specialty': fake.job(),
         'phone_number': fake.unique.phone_number(),
         'email': fake.unique.email(),
