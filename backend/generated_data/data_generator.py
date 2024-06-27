@@ -201,7 +201,6 @@ for free_time in random.sample(doctor_free_times, int(len(doctor_free_times) * 0
         'patient_id': random.choice(patient_ids),
         'service_id': random.randint(1, 100),  # Assuming 100 services
         'tooth_number': random.randint(1, 32),
-        'raw_cost': round(random.uniform(50, 500), 2),
         'is_reminded': fake.boolean()
     })
     doctor_visit_ids.append(doctor_visits_counter)
@@ -317,12 +316,12 @@ write_csv('Charity.csv', ['id', 'name', 'phone_number', 'address', 'location_id'
 write_csv('CharityEmployee.csv', ['id', 'charity_id', 'first_name', 'last_name', 'national_id', 'phone_number', 'email', 'password'], charity_employees)
 write_csv('Doctor.csv', ['id', 'first_name', 'last_name', 'doctor_code', 'major', 'specialty', 'phone_number', 'email', 'password', 'address', 'location_id','created_at'], doctors)
 write_csv('DoctorFreeTime.csv', ['id', 'doctor_id', 'date', 'start_time', 'finish_time'], doctor_free_times)
-write_csv('DoctorVisit.csv', ['id', 'fact_doctor_free_time_id', 'patient_id', 'service_id', 'tooth_number', 'raw_cost', 'is_reminded'], doctor_visits)
+write_csv('DoctorVisit.csv', ['id', 'fact_doctor_free_time_id', 'patient_id', 'service_id', 'tooth_number', 'is_reminded'], doctor_visits)
 write_csv('Patient.csv', ['id', 'charity_id', 'first_name', 'last_name', 'national_id', 'birthdate', 'sex','created_at'], patients)
 write_csv('RadiologyCenter.csv', ['id', 'name', 'code', 'phone_number', 'address', 'location_id','created_at'], radiology_centers)
 write_csv('RadiologyCenterEmployee.csv', ['id', 'radiology_center_id', 'first_name', 'last_name', 'national_id', 'phone_number', 'password'], radiology_center_employees)
 write_csv('RadiologyCenterFreeTime.csv', ['id', 'radiology_center_id', 'date', 'start_time', 'finish_time'], radiology_center_free_times)
-write_csv('RadiologyCenterVisit.csv', ['id', 'fact_radiology_center_free_time_id', 'doctor_visit_id', 'opg_image', 'raw_cost', 'is_reminded'], radiology_center_visits)
+write_csv('RadiologyCenterVisit.csv', ['id', 'fact_radiology_center_free_time_id', 'doctor_visit_id', 'opg_image', 'is_reminded'], radiology_center_visits)
 write_csv('SystemSecretary.csv', ['id', 'first_name', 'last_name', 'national_id', 'phone_number', 'email', 'password', 'role', 'location_id'], system_secretaries)
 write_csv('Prescription.csv',['id', 'doctor_visit_id', 'drug_id'], prescriptions)
 
