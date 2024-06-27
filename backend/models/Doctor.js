@@ -8,7 +8,6 @@ const Doctor = sequelize.define('Doctor', {
     last_name: { type: DataTypes.STRING, allowNull: false },
     doctor_code: { type: DataTypes.STRING, allowNull: false, unique: true },
     major: { type: DataTypes.STRING, allowNull: false },
-    specialty: { type: DataTypes.STRING, allowNull: false },
     phone_number: { type: DataTypes.STRING, allowNull: false, unique: true },
     email: { type: DataTypes.STRING, allowNull: false, unique: true },
     password: { type: DataTypes.STRING, allowNull: false },
