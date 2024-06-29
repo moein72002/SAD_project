@@ -10,9 +10,8 @@ const Admin = sequelize.define('Admin', {
     phone_number: { type: DataTypes.STRING, allowNull: false, unique: true },
     email: { type: DataTypes.STRING, allowNull: false, unique: true },
     password: { type: DataTypes.STRING, allowNull: false },
-    role: { type: DataTypes.STRING, allowNull: false, defaultValue: 'admin' },
 }, {
-    timestamps: true,
+    timestamps: false,
 });
 
 // Hook to hash password before saving
@@ -42,7 +41,7 @@ const Charity = sequelize.define('Charity', {
         allowNull: false
     }
 }, {
-    timestamps: true,
+    timestamps: false,
 });
 
 module.exports = Charity;
@@ -70,7 +69,7 @@ const CharityEmployee = sequelize.define('CharityEmployee', {
     email: { type: DataTypes.STRING, allowNull: false, unique: true },
     password: { type: DataTypes.STRING, allowNull: false }
 }, {
-    timestamps: true,
+    timestamps: false,
 });
 
 // Hook to hash password before saving
@@ -93,7 +92,6 @@ const Doctor = sequelize.define('Doctor', {
     last_name: { type: DataTypes.STRING, allowNull: false },
     doctor_code: { type: DataTypes.STRING, allowNull: false, unique: true },
     major: { type: DataTypes.STRING, allowNull: false },
-    specialty: { type: DataTypes.STRING, allowNull: false },
     phone_number: { type: DataTypes.STRING, allowNull: false, unique: true },
     email: { type: DataTypes.STRING, allowNull: false, unique: true },
     password: { type: DataTypes.STRING, allowNull: false },
@@ -137,7 +135,7 @@ const DoctorFreeTime = sequelize.define('DoctorFreeTime', {
     start_time: { type: DataTypes.TIME, allowNull: false },
     finish_time: { type: DataTypes.TIME, allowNull: false }
 }, {
-    timestamps: true,
+    timestamps: false,
 });
 
 // Custom method to partition free time into 30-minute intervals
@@ -169,7 +167,7 @@ const Patient = require('./Patient');
 const Service = require('./Service');
 
 const DoctorVisit = sequelize.define('DoctorVisit', {
-    fact_doctor_free_time_id: {
+    doctor_free_time_id: {
         type: DataTypes.INTEGER,
         references: {
             model: DoctorFreeTime,
@@ -194,10 +192,9 @@ const DoctorVisit = sequelize.define('DoctorVisit', {
         allowNull: false
     },
     tooth_number: { type: DataTypes.INTEGER, allowNull: false },
-    raw_cost: { type: DataTypes.FLOAT, allowNull: false },
     is_reminded: { type: DataTypes.BOOLEAN, allowNull: false }
 }, {
-    timestamps: true,
+    timestamps: false,
 });
 
 module.exports = DoctorVisit;
@@ -208,18 +205,20 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../config/sequelize');
 
 const Drug = sequelize.define('Drug', {
-    name: { type: DataTypes.STRING, allowNull: false },
-    shape: { type: DataTypes.STRING, allowNull: false },
-    dosage: { type: DataTypes.STRING, allowNull: false },
-    usage: { type: DataTypes.TEXT, allowNull: false },
-    category: { type: DataTypes.STRING, allowNull: false },
-    ingredients: { type: DataTypes.TEXT, allowNull: false },
-    clinical_verified: { type: DataTypes.BOOLEAN, allowNull: false },
-    access_level: { type: DataTypes.INTEGER, allowNull: false },
-    description: { type: DataTypes.TEXT, allowNull: false },
+    drug_id: { type: DataTypes.INTEGER, allowNull: false, unique: true },
+    drug_name: { type: DataTypes.STRING, allowNull: false },
+    salt: { type: DataTypes.STRING, allowNull: true },
+    dosage_form: { type: DataTypes.STRING, allowNull: false },
+    strength: { type: DataTypes.STRING, allowNull: true },
+    route_of_admin: { type: DataTypes.STRING, allowNull: true },
+    atc_code: { type: DataTypes.STRING, allowNull: false },
+    ingredient: { type: DataTypes.TEXT, allowNull: true },
+    approved_clinical_indications: { type: DataTypes.TEXT, allowNull: false },
+    access_level: { type: DataTypes.STRING, allowNull: true },
+    remarks: { type: DataTypes.TEXT, allowNull: true },
     expiration_date: { type: DataTypes.DATE, allowNull: false }
 }, {
-    timestamps: true,
+    timestamps: false,
 });
 
 module.exports = Drug;
@@ -234,15 +233,9 @@ const Location = sequelize.define('Location', {
     lat: { type: DataTypes.FLOAT, allowNull: false },
     lng: { type: DataTypes.FLOAT, allowNull: false },
     city: { type: DataTypes.STRING, allowNull: false },
-    province: { type: DataTypes.STRING, allowNull: false },
+    country: { type: DataTypes.STRING, allowNull: false },
 }, {
-    timestamps: true,
-    indexes: [
-        {
-            unique: true,
-            fields: ['province', 'city']
-        }
-    ]
+    timestamps: false
 });
 
 module.exports = Location;
@@ -251,6 +244,7 @@ module.exports = Location;
 Patient.js:
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/sequelize');
+const Charity = require('./Charity');
 
 const Patient = sequelize.define('Patient', {
     charity_id: {
@@ -279,6 +273,36 @@ const Patient = sequelize.define('Patient', {
 module.exports = Patient;
 
 
+Prescription.js:
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/sequelize');
+const DoctorVisit = require('./DoctorVisit');
+const Drug = require('./Drug');
+
+const Prescription = sequelize.define('Prescription', {
+    doctor_visit_id: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: DoctorVisit,
+            key: 'id'
+        },
+        allowNull: false
+    },
+    drug_id: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: Drug,
+            key: 'drug_id'
+        },
+        allowNull: false
+    }
+}, {
+    timestamps: false,
+});
+
+module.exports = Prescription;
+
+
 RadiologyCenter.js:
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/sequelize');
@@ -298,7 +322,7 @@ const RadiologyCenter = sequelize.define('RadiologyCenter', {
         allowNull: false
     }
 }, {
-    timestamps: true,
+    timestamps: false,
 });
 
 module.exports = RadiologyCenter;
@@ -325,7 +349,7 @@ const RadiologyCenterEmployee = sequelize.define('RadiologyCenterEmployee', {
     phone_number: { type: DataTypes.STRING, allowNull: false },
     password: { type: DataTypes.STRING, allowNull: false }
 }, {
-    timestamps: true,
+    timestamps: false,
 });
 
 // Hook to hash password before saving
@@ -355,7 +379,7 @@ const RadiologyCenterFreeTime = sequelize.define('RadiologyCenterFreeTime', {
     start_time: { type: DataTypes.TIME, allowNull: false },
     finish_time: { type: DataTypes.TIME, allowNull: false }
 }, {
-    timestamps: true,
+    timestamps: false,
 });
 
 // Custom method to partition free time into 30-minute intervals
@@ -388,7 +412,7 @@ const Service = require('./Service');
 const DoctorVisit = require('./DoctorVisit');
 
 const RadiologyCenterVisit = sequelize.define('RadiologyCenterVisit', {
-    fact_radiology_center_free_time_id: {
+    radiology_center_free_time_id: {
         type: DataTypes.INTEGER,
         references: {
             model: RadiologyCenterFreeTime,
@@ -405,10 +429,9 @@ const RadiologyCenterVisit = sequelize.define('RadiologyCenterVisit', {
         allowNull: false
     },
     opg_image: { type: DataTypes.STRING, defaultValue: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRGzWZDpX9gNdFKInBmkFHoVLumxNn7_4jIyA&s', allowNull: true },
-    raw_cost: { type: DataTypes.FLOAT, allowNull: false },
     is_reminded: { type: DataTypes.BOOLEAN, defaultValue: false },
 }, {
-    timestamps: true,
+    timestamps: false,
 });
 
 module.exports = RadiologyCenterVisit;
@@ -427,7 +450,7 @@ const Service = sequelize.define('Service', {
     service_description: { type: DataTypes.TEXT, allowNull: false },
     code: { type: DataTypes.STRING, allowNull: false, unique: true }
 }, {
-    timestamps: true,
+    timestamps: false,
 });
 
 module.exports = Service;
@@ -445,18 +468,9 @@ const SystemSecretary = sequelize.define('SystemSecretary', {
     national_id: { type: DataTypes.STRING(10), allowNull: false, unique: true },
     phone_number: { type: DataTypes.STRING, allowNull: false, unique: true },
     email: { type: DataTypes.STRING, allowNull: false, unique: true },
-    password: { type: DataTypes.STRING, allowNull: false },
-    role: { type: DataTypes.STRING, allowNull: false, defaultValue: 'system_secretary' },
-    location_id: {
-        type: DataTypes.INTEGER,
-        references: {
-            model: Location,
-            key: 'id'
-        },
-        allowNull: false
-    }
+    password: { type: DataTypes.STRING, allowNull: false }
 }, {
-    timestamps: true,
+    timestamps: false,
 });
 
 // Hook to hash password before saving

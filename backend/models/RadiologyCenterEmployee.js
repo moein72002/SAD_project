@@ -18,7 +18,7 @@ const RadiologyCenterEmployee = sequelize.define('RadiologyCenterEmployee', {
     phone_number: { type: DataTypes.STRING, allowNull: false },
     password: { type: DataTypes.STRING, allowNull: false }
 }, {
-    timestamps: true,
+    timestamps: false,
 });
 
 // Hook to hash password before saving

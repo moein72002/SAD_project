@@ -5,7 +5,7 @@ const Patient = require('./Patient');
 const Service = require('./Service');
 
 const DoctorVisit = sequelize.define('DoctorVisit', {
-    fact_doctor_free_time_id: {
+    doctor_free_time_id: {
         type: DataTypes.INTEGER,
         references: {
             model: DoctorFreeTime,
@@ -30,10 +30,9 @@ const DoctorVisit = sequelize.define('DoctorVisit', {
         allowNull: false
     },
     tooth_number: { type: DataTypes.INTEGER, allowNull: false },
-    raw_cost: { type: DataTypes.FLOAT, allowNull: false },
     is_reminded: { type: DataTypes.BOOLEAN, allowNull: false }
 }, {
-    timestamps: true,
+    timestamps: false,
 });
 
 module.exports = DoctorVisit;

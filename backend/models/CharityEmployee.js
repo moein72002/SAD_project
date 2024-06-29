@@ -19,7 +19,7 @@ const CharityEmployee = sequelize.define('CharityEmployee', {
     email: { type: DataTypes.STRING, allowNull: false, unique: true },
     password: { type: DataTypes.STRING, allowNull: false }
 }, {
-    timestamps: true,
+    timestamps: false,
 });
 
 // Hook to hash password before saving

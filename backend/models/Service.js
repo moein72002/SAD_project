@@ -10,7 +10,7 @@ const Service = sequelize.define('Service', {
     service_description: { type: DataTypes.TEXT, allowNull: false },
     code: { type: DataTypes.STRING, allowNull: false, unique: true }
 }, {
-    timestamps: true,
+    timestamps: false,
 });
 
 module.exports = Service;

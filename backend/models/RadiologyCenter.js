@@ -16,7 +16,7 @@ const RadiologyCenter = sequelize.define('RadiologyCenter', {
         allowNull: false
     }
 }, {
-    timestamps: true,
+    timestamps: false,
 });
 
 module.exports = RadiologyCenter;

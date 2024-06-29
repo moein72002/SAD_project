@@ -15,7 +15,7 @@ const Charity = sequelize.define('Charity', {
         allowNull: false
     }
 }, {
-    timestamps: true,
+    timestamps: false,
 });
 
 module.exports = Charity;

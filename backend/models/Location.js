@@ -6,14 +6,9 @@ const Location = sequelize.define('Location', {
     lat: { type: DataTypes.FLOAT, allowNull: false },
     lng: { type: DataTypes.FLOAT, allowNull: false },
     city: { type: DataTypes.STRING, allowNull: false },
+    country: { type: DataTypes.STRING, allowNull: false },
 }, {
-    timestamps: true,
-    indexes: [
-        {
-            unique: true,
-            fields: ['city']
-        }
-    ]
+    timestamps: false
 });
 
 module.exports = Location;

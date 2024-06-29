@@ -14,10 +14,10 @@ exports.listCharityPatients = async (req, res) => {
     try {
         const token = req.header('Authorization')?.split(' ')[1];
         if (!token) return res.status(401).json({ message: 'Access denied' });
-        const charity_id = jwt.decode(token).charity_id;
+        // const charity_id = jwt.decode(token).charity_id;
 
         const patients =
-            await Patient.findAll({ where: { charity_id: charity_id } });
+            await Patient.findAll();
         res.status(200).json(patients);
     } catch (error) {
         res.status(400).json({ error: error.message });

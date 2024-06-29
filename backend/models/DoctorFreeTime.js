@@ -15,7 +15,7 @@ const DoctorFreeTime = sequelize.define('DoctorFreeTime', {
     start_time: { type: DataTypes.TIME, allowNull: false },
     finish_time: { type: DataTypes.TIME, allowNull: false }
 }, {
-    timestamps: true,
+    timestamps: false,
 });
 
 // Custom method to partition free time into 30-minute intervals

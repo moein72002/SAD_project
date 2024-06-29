@@ -9,18 +9,9 @@ const SystemSecretary = sequelize.define('SystemSecretary', {
     national_id: { type: DataTypes.STRING(10), allowNull: false, unique: true },
     phone_number: { type: DataTypes.STRING, allowNull: false, unique: true },
     email: { type: DataTypes.STRING, allowNull: false, unique: true },
-    password: { type: DataTypes.STRING, allowNull: false },
-    role: { type: DataTypes.STRING, allowNull: false, defaultValue: 'system_secretary' },
-    location_id: {
-        type: DataTypes.INTEGER,
-        references: {
-            model: Location,
-            key: 'id'
-        },
-        allowNull: false
-    }
+    password: { type: DataTypes.STRING, allowNull: false }
 }, {
-    timestamps: true,
+    timestamps: false,
 });
 
 // Hook to hash password before saving

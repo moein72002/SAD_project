@@ -4,7 +4,7 @@ const patientController = require('../controllers/patientController');
 const authMiddleware = require('../middlewares/authMiddleware');
 const roleMiddleware = require('../middlewares/roleMiddleware');
 
-router.post('/add', authMiddleware, roleMiddleware(['charity_employee']), patientController.addPatient);
-router.get('/list', authMiddleware, roleMiddleware(['charity_employee']), patientController.listCharityPatients);
+router.post('/add', authMiddleware, roleMiddleware(['admin', 'charity_employee']), patientController.addPatient);
+router.get('/list', authMiddleware, roleMiddleware(['admin', 'charity_employee']), patientController.listCharityPatients);
 
 module.exports = router;
